@@ -1,14 +1,29 @@
-version: "3"
-services:
-  coursematerial:
-    image: devopsdockeruh/coursepage
-    ports:
-      - 4000:80
-    container_name: coursematerial
-  watchtower:
-    image: containrrr/watchtower
-    environment:
-      -  WATCHTOWER_POLL_INTERVAL=60 # Poll every 60 seconds
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    container_name: watchtower
+name: Release DevOps with Docker # Name of the workflow
+
+# On a push to the branch named master
+on:
+  push:
+    branches: 
+      - master
+
+# Job called build runs-on ubuntu-latest
+jobs:
+  build: 
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout to the repository (the actions don't actually need this since they use the repository context anyway)
+    - uses: actions/checkout@v2 
+
+    # We need to login so we can later push the image without issues. 
+    - name: Login to DockerHub
+      uses: docker/login-action@v1 
+      with: 
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+            
+    # Builds devopsdockeruh/docker-hy.github.io
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: devopsdockeruh/coursepage:latest
